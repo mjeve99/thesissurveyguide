@@ -52,28 +52,16 @@
       out.innerHTML = '<div class="cs-none">' + MSG.none + '</div>';
       return;
     }
-    let html = '<div class="cs-ok">' + MSG.ok + '</div><ul class="cs-list">';
-    gHits.slice(0, 3).forEach(g => {
-      html += `<li><span>${esc(g.label)} 소속 회사 전체</span><em>${esc(g.label)}</em></li>`;
-    });
-    // 처음엔 FIRST줄만, [더 보기]를 누르면 LIMIT줄까지 스크롤 목록으로 펼친다.
-    const FIRST = collab ? 5 : 15;
+    // 결과는 목록 하나에 모두 넣고(최대 LIMIT개), 목록 안에서 스크롤한다.
     const LIMIT = 100;
-    const row = c => `<li><span>${esc(c.name)}</span><em>${esc(groups[c.gi].label)}</em></li>`;
-    html += cHits.slice(0, FIRST).map(row).join('') + '</ul>';
-    const rest = cHits.slice(FIRST, LIMIT);
-    if (rest.length) {
-      html += `<ul class="cs-list cs-rest" hidden>${rest.map(row).join('')}</ul>` +
-        `<button type="button" class="cs-toggle">더 보기 (${rest.length}개)</button>`;
-    }
-    if (cHits.length > LIMIT) html += `<p class="cs-more">결과가 많아 ${LIMIT}개까지만 보여 드립니다. 이름을 더 입력해 보세요.</p>`;
+    const rows = gHits.slice(0, 3).map(g => `<li><span>${esc(g.label)} 소속 회사 전체</span><em>${esc(g.label)}</em></li>`)
+      .concat(cHits.slice(0, LIMIT).map(c => `<li><span>${esc(c.name)}</span><em>${esc(groups[c.gi].label)}</em></li>`));
+    let html = '<div class="cs-ok">' + MSG.ok + '</div>';
+    if (cHits.length > 5) html += `<p class="cs-count">검색 결과 ${cHits.length}개${cHits.length > LIMIT ? ` (앞 ${LIMIT}개 표시)` : ''} · 목록을 스크롤해 보세요</p>`;
+    html += `<ul class="cs-list cs-scroll">${rows.join('')}</ul>`;
+    if (cHits.length > LIMIT) html += '<p class="cs-more">이름을 더 입력하면 결과가 좁혀집니다.</p>';
     out.innerHTML = html;
-    const btn = out.querySelector('.cs-toggle');
-    if (btn) btn.addEventListener('click', () => {
-      const r = out.querySelector('.cs-rest');
-      r.hidden = !r.hidden;
-      btn.textContent = r.hidden ? `더 보기 (${rest.length}개)` : '접기';
-    });
+    out.querySelector('.cs-scroll').scrollTop = 0;
   }
   input.addEventListener('input', run);
 })();
